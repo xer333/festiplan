@@ -1,6 +1,6 @@
 # FestiPlan
 
-Dépôt GitHub : [xer333/festiplan](https://github.com/xer333/festiplan) (privé).
+Dépôt GitHub : [xer333/festiplan](https://github.com/xer333/festiplan) (public).
 
 API Python de gestion d'un festival fictif, refactorisée selon une architecture hexagonale et un modèle DDD. Les règles de programmation sont partagées entre création, déplacement et publication. Les trois défauts du sujet sont reproduits, corrigés et couverts par des tests.
 
