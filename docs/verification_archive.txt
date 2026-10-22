@@ -1,0 +1,10 @@
+Archive extraite sans .venv ni base de données.
+Suite exécutée depuis le dossier extrait : 92 tests réussis.
+Les tests ne créent pas la base de travail.
+Données chargées : Hellforge Open Air, 4 scènes, 12 artistes, 14 concerts.
+GET /docs : 200
+GET /openapi.json : 200
+GET /festivals : 200
+GET /concerts/schedule/1 : 200
+Serveur temporaire arrêté après les contrôles.
+Interpréteur et dépendances installés réutilisés ; code exécuté uniquement depuis l’archive extraite.

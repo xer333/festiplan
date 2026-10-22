@@ -1,0 +1,222 @@
+..........................FFFFFFF                                        [100%]
+================================== FAILURES ===================================
+_____ test_aggregate_checks_own_concerts_when_external_snapshot_is_empty ______
+
+    def test_aggregate_checks_own_concerts_when_external_snapshot_is_empty():
+        festival, artist, stage, concert = fixture()
+        candidate = replace(concert, id=0)
+>       with pytest.raises(DomainError, match='Conflit'):
+E       Failed: DID NOT RAISE <class 'app.domain.errors.DomainError'>
+
+tests\domain\test_model.py:144: Failed
+__ test_aggregate_publication_checks_own_concerts_without_external_snapshot ___
+
+    def test_aggregate_publication_checks_own_concerts_without_external_snapshot():
+        festival, artist, stage, concert = fixture()
+        conflict = replace(concert, id=2)
+>       with pytest.raises(DomainError, match='Conflit'):
+E       Failed: DID NOT RAISE <class 'app.domain.errors.DomainError'>
+
+tests\domain\test_model.py:151: Failed
+_____ test_aggregate_cannot_modify_an_entity_it_does_not_contain[program] _____
+
+operation = 'program'
+
+    @pytest.mark.parametrize('operation', ['program', 'cancel'])
+    def test_aggregate_cannot_modify_an_entity_it_does_not_contain(operation):
+        festival, artist, stage, concert = fixture()
+        planning = Planning(festival, ())
+>       with pytest.raises(DomainError):
+E       Failed: DID NOT RAISE <class 'app.domain.errors.DomainError'>
+
+tests\domain\test_model.py:159: Failed
+_____ test_aggregate_cannot_modify_an_entity_it_does_not_contain[cancel] ______
+
+operation = 'cancel'
+
+    @pytest.mark.parametrize('operation', ['program', 'cancel'])
+    def test_aggregate_cannot_modify_an_entity_it_does_not_contain(operation):
+        festival, artist, stage, concert = fixture()
+        planning = Planning(festival, ())
+>       with pytest.raises(DomainError):
+E       Failed: DID NOT RAISE <class 'app.domain.errors.DomainError'>
+
+tests\domain\test_model.py:159: Failed
+_______ test_utc_conversion_outside_datetime_range_is_a_business_error ________
+
+    def test_utc_conversion_outside_datetime_range_is_a_business_error():
+        low = datetime.min.replace(tzinfo=timezone(timedelta(hours=2)))
+        with pytest.raises(DomainError):
+>           TimeSlot(low, low + timedelta(hours=1))
+
+tests\domain\test_model.py:169: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<string>:5: in __init__
+    ???
+app\domain\model.py:24: in __post_init__
+    object.__setattr__(self, 'start', utc_naive(self.start))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = datetime.datetime(1, 1, 1, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(seconds=7200)))
+
+    def utc_naive(value: datetime) -> datetime:
+        """Legacy SQLite stores naive datetimes; aware inputs are converted to UTC."""
+>       return value.astimezone(timezone.utc).replace(tzinfo=None) if value.tzinfo else value
+E       OverflowError: date value out of range
+
+app\domain\model.py:10: OverflowError
+_ test_integration_suite_preserves_database_when_application_is_already_imported _
+
+tmp_path = WindowsPath('C:/Users/weber/AppData/Local/Temp/pytest-of-weber/pytest-2/test_integration_suite_preserv0')
+
+    def test_integration_suite_preserves_database_when_application_is_already_imported(tmp_path):
+        database = tmp_path / 'working.db'
+        with sqlite3.connect(database) as connection:
+            connection.execute('CREATE TABLE sentinel (value TEXT)')
+            connection.execute("INSERT INTO sentinel VALUES ('Keep user data')")
+        original = database.read_bytes()
+        code = '''from app.main import app
+    from app.database import engine
+    import pytest
+    raise SystemExit(pytest.main(['-q', 'tests/integration/test_regressions.py']))
+    '''
+        run = subprocess.run([sys.executable, '-c', code], capture_output=True, timeout=60,
+                             cwd=Path(__file__).resolve().parents[1],
+                             env=dict(os.environ, FESTIPLAN_DATABASE_URL=f'sqlite:///{database}',
+                                      FESTIPLAN_FAIL_NOTIFICATIONS='false', PYTHONIOENCODING='utf-8'))
+        assert run.returncode == 0, (run.stdout + run.stderr).decode('utf-8')
+>       assert database.read_bytes() == original
+E       assert b"SQLite form...0\x00\x00\x00" == b'SQLite form...eep user data'
+E         
+E         At index 27 diff: b'*' != b'\x02'
+E         Use -v to get more diff
+
+tests\test_isolation.py:25: AssertionError
+________ test_http_read_accepts_festival_created_by_non_http_use_case _________
+
+client = <starlette.testclient.TestClient object at 0x000001C923545850>
+
+    def test_http_read_accepts_festival_created_by_non_http_use_case(client):
+        with SessionLocal() as db:
+            service = FestiPlan(SqlUnitOfWork(db), Mock())
+            service.create_festival('X', 'Y', datetime(2027, 6, 18), datetime(2027, 6, 20))
+>       response = client.get('/festivals')
+
+tests\integration\test_rules_api.py:209: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\starlette\testclient.py:465: in get
+    return super().get(
+.venv\Lib\site-packages\httpx\_client.py:1053: in get
+    return self.request(
+.venv\Lib\site-packages\starlette\testclient.py:437: in request
+    return super().request(
+.venv\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+.venv\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+.venv\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+.venv\Lib\site-packages\starlette\testclient.py:340: in handle_request
+    raise exc
+.venv\Lib\site-packages\starlette\testclient.py:337: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv\Lib\site-packages\anyio\from_thread.py:340: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+.venv\Lib\site-packages\anyio\from_thread.py:265: in _call_func
+    retval = await retval_or_awaitable
+.venv\Lib\site-packages\fastapi\applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+.venv\Lib\site-packages\starlette\applications.py:112: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\middleware\errors.py:187: in __call__
+    raise exc
+.venv\Lib\site-packages\starlette\middleware\errors.py:165: in __call__
+    await self.app(scope, receive, _send)
+.venv\Lib\site-packages\starlette\middleware\exceptions.py:62: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:714: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:734: in app
+    await route.handle(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:288: in handle
+    await self.app(scope, receive, send)
+.venv\Lib\site-packages\starlette\routing.py:76: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv\Lib\site-packages\starlette\routing.py:73: in app
+    response = await f(request)
+.venv\Lib\site-packages\fastapi\routing.py:327: in app
+    content = await serialize_response(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    async def serialize_response(
+        *,
+        field: Optional[ModelField] = None,
+        response_content: Any,
+        include: Optional[IncEx] = None,
+        exclude: Optional[IncEx] = None,
+        by_alias: bool = True,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        is_coroutine: bool = True,
+    ) -> Any:
+        if field:
+            errors = []
+            if not hasattr(field, "serialize"):
+                # pydantic v1
+                response_content = _prepare_response_content(
+                    response_content,
+                    exclude_unset=exclude_unset,
+                    exclude_defaults=exclude_defaults,
+                    exclude_none=exclude_none,
+                )
+            if is_coroutine:
+                value, errors_ = field.validate(response_content, {}, loc=("response",))
+            else:
+                value, errors_ = await run_in_threadpool(
+                    field.validate, response_content, {}, loc=("response",)
+                )
+            if isinstance(errors_, list):
+                errors.extend(errors_)
+            elif errors_:
+                errors.append(errors_)
+            if errors:
+>               raise ResponseValidationError(
+                    errors=_normalize_errors(errors), body=response_content
+                )
+E               fastapi.exceptions.ResponseValidationError: 2 validation errors:
+E                 {'type': 'string_too_short', 'loc': ('response', 0, 'name'), 'msg': 'String should have at least 2 characters', 'input': 'X', 'ctx': {'min_length': 2}}
+E                 {'type': 'string_too_short', 'loc': ('response', 0, 'location'), 'msg': 'String should have at least 2 characters', 'input': 'Y', 'ctx': {'min_length': 2}}
+
+.venv\Lib\site-packages\fastapi\routing.py:176: ResponseValidationError
+============================== warnings summary ===============================
+.venv\Lib\site-packages\starlette\testclient.py:37
+  C:\Users\weber\OneDrive\Bureau\Nouveau dossier\festiplan\.venv\Lib\site-packages\starlette\testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/domain/test_model.py::test_aggregate_checks_own_concerts_when_external_snapshot_is_empty
+FAILED tests/domain/test_model.py::test_aggregate_publication_checks_own_concerts_without_external_snapshot
+FAILED tests/domain/test_model.py::test_aggregate_cannot_modify_an_entity_it_does_not_contain[program]
+FAILED tests/domain/test_model.py::test_aggregate_cannot_modify_an_entity_it_does_not_contain[cancel]
+FAILED tests/domain/test_model.py::test_utc_conversion_outside_datetime_range_is_a_business_error
+FAILED tests/test_isolation.py::test_integration_suite_preserves_database_when_application_is_already_imported
+FAILED tests/integration/test_rules_api.py::test_http_read_accepts_festival_created_by_non_http_use_case
+7 failed, 26 passed, 1 warning in 4.40s

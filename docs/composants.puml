@@ -1,0 +1,58 @@
+@startuml
+!pragma layout smetana
+skinparam componentStyle uml2
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam ArrowColor #475569
+skinparam componentBackgroundColor #EFF6FF
+skinparam packageBackgroundColor #F8FAFC
+title FestiPlan - composants et dépendances réelles
+top to bottom direction
+
+actor "Client HTTP" as client
+package "Adaptateur entrant" {
+  component "API FastAPI\napp.api + app.schemas\napp.main : erreurs et démarrage" as http
+}
+package "Cœur indépendant des technologies" {
+  component "API applicative FestiPlan\napp.application.service\ncommandes et OperationResult" as uc
+  rectangle "«interface»\nRepository[T]\nget / list / save" as repo
+  rectangle "«interface»\nUnitOfWork\nenter / commit / exit" as uow
+  rectangle "«interface»\nNotifier\nnotify(DomainEvent)" as notify
+  component "Domaine\napp.domain.model + events + errors\nPlanning, entités, TimeSlot, Equipment\nvalidate_programming" as domain
+  repo -[hidden]right-> uow
+  uow -[hidden]right-> notify
+  uc --> domain
+  uc --> repo
+  uc --> uow
+  uc --> notify
+}
+package "Adaptateurs sortants" {
+  component "SqlRepository\napp.adapters.persistence\nmapping ORM / domaine" as sqlrepo
+  component "SqlUnitOfWork\napp.adapters.persistence" as sqluow
+  component "Tables SQLAlchemy\napp.models\nSession / engine : app.database" as orm
+  component "EmailNotifier\napp.adapters.notifications" as mail
+  component "send_email simulé\napp.utils.email_sender" as sender
+}
+database "SQLite" as db
+component "Assemblage\napp.composition.get_service\nFastAPI Depends(get_db)" as composition
+
+client --> http : requête / réponse
+http --> uc : appelle
+sqlrepo ..|> repo
+sqluow ..|> uow
+mail ..|> notify
+sqluow --> sqlrepo : fournit les dépôts
+sqlrepo --> orm
+sqluow --> orm : commit / rollback
+orm --> db
+mail --> sender
+composition ..> sqluow : crée
+composition ..> mail : crée
+composition ..> uc : injecte
+http ..> composition : dépendance FastAPI
+
+note bottom of domain
+  Bibliothèque standard Python uniquement.
+  Aucun import FastAPI, Pydantic ou SQLAlchemy.
+end note
+@enduml

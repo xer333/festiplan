@@ -1,0 +1,57 @@
+....FFF..                                                                [100%]
+================================== FAILURES ===================================
+_____________ test_regression_move_onto_occupied_stage_is_refused _____________
+
+client = <starlette.testclient.TestClient object at 0x0000016331A479E0>
+
+    def test_regression_move_onto_occupied_stage_is_refused(client):
+        _, _, _, concerts = setup_schedule(client)
+>       assert move(client, concerts[0]).status_code == 400
+E       AssertionError: assert 200 == 400
+E        +  where 200 = <Response [200 OK]>.status_code
+E        +    where <Response [200 OK]> = move(<starlette.testclient.TestClient object at 0x0000016331A479E0>, {'artist_id': 1, 'end_time': '2027-06-18T19:00:00', 'festival_id': 1, 'id': 1, ...})
+
+tests\test_regressions.py:30: AssertionError
+---------------------------- Captured stdout call -----------------------------
+[FAKE EMAIL] to=production@festiplan.test subject=Modification du concert #1 body=Concert déplacé au 2027-06-18T20:15:00
+_____________ test_regression_notification_failure_keeps_success ______________
+
+client = <starlette.testclient.TestClient object at 0x0000016331A47C50>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000016331A7EED0>
+
+    def test_regression_notification_failure_keeps_success(client, monkeypatch):
+        _, _, _, concerts = setup_schedule(client)
+        monkeypatch.setattr(settings, 'fail_notifications', True)
+        response = move(client, concerts[0], '16:00', '17:00')
+>       assert response.status_code == 200
+E       assert 500 == 200
+E        +  where 500 = <Response [500 Internal Server Error]>.status_code
+
+tests\test_regressions.py:38: AssertionError
+__________ test_regression_published_schedule_refuses_ordinary_move ___________
+
+client = <starlette.testclient.TestClient object at 0x0000016331A5ECC0>
+
+    def test_regression_published_schedule_refuses_ordinary_move(client):
+        festival, _, _, concerts = setup_schedule(client)
+        assert client.post(f"/festivals/{festival['id']}/publish").status_code == 200
+>       assert move(client, concerts[0], '16:00', '17:00').status_code == 409
+E       AssertionError: assert 200 == 409
+E        +  where 200 = <Response [200 OK]>.status_code
+E        +    where <Response [200 OK]> = move(<starlette.testclient.TestClient object at 0x0000016331A5ECC0>, {'artist_id': 1, 'end_time': '2027-06-18T19:00:00', 'festival_id': 1, 'id': 1, ...}, '16:00', '17:00')
+
+tests\test_regressions.py:46: AssertionError
+---------------------------- Captured stdout call -----------------------------
+[FAKE EMAIL] to=production@festiplan.test subject=Modification du concert #1 body=Le planning du festival Regression Fest a été publié.
+[FAKE EMAIL] to=production@festiplan.test subject=Modification du concert #1 body=Concert déplacé au 2027-06-18T16:00:00
+============================== warnings summary ===============================
+..\..\..\..\OneDrive\Bureau\Nouveau dossier\festiplan\.venv\Lib\site-packages\starlette\testclient.py:37
+  C:\Users\weber\OneDrive\Bureau\Nouveau dossier\festiplan\.venv\Lib\site-packages\starlette\testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_regressions.py::test_regression_move_onto_occupied_stage_is_refused
+FAILED tests/test_regressions.py::test_regression_notification_failure_keeps_success
+FAILED tests/test_regressions.py::test_regression_published_schedule_refuses_ordinary_move
+3 failed, 6 passed, 1 warning in 1.44s

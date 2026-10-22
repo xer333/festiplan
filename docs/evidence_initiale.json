@@ -1,0 +1,63 @@
+{
+  "initial_test_exit_code": 1,
+  "swagger_status": 200,
+  "routes": [
+    "/festivals",
+    "/festivals/{festival_id}/publish",
+    "/artists",
+    "/stages",
+    "/concerts",
+    "/concerts/{concert_id}",
+    "/concerts/{concert_id}/reschedule",
+    "/concerts/{concert_id}/cancel",
+    "/concerts/schedule/{festival_id}",
+    "/incidents",
+    "/"
+  ],
+  "stage_overlap": {
+    "status": 200,
+    "persisted": {
+      "id": 1,
+      "festival_id": 1,
+      "artist_id": 1,
+      "stage_id": 1,
+      "start_time": "2027-06-18T20:15:00",
+      "end_time": "2027-06-18T21:15:00",
+      "status": "scheduled"
+    }
+  },
+  "notification_failure": {
+    "status": 500,
+    "persisted": {
+      "id": 1,
+      "festival_id": 1,
+      "artist_id": 1,
+      "stage_id": 1,
+      "start_time": "2027-06-18T16:00:00",
+      "end_time": "2027-06-18T17:00:00",
+      "status": "scheduled"
+    }
+  },
+  "published_move": {
+    "status": 200,
+    "festival": [
+      {
+        "name": "Regression Fest",
+        "location": "Clisson",
+        "start_date": "2027-06-18T10:00:00",
+        "end_date": "2027-06-20T23:00:00",
+        "id": 1,
+        "status": "published"
+      }
+    ],
+    "persisted": {
+      "id": 1,
+      "festival_id": 1,
+      "artist_id": 1,
+      "stage_id": 1,
+      "start_time": "2027-06-18T16:00:00",
+      "end_time": "2027-06-18T17:00:00",
+      "status": "scheduled"
+    }
+  }
+}

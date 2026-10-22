@@ -1,0 +1,61 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 230
+title Déplacer un concert : refus, transaction et notification
+actor Client
+participant "Route FastAPI\napp.api.concerts" as HTTP
+participant "FestiPlan\nreschedule(command)" as UC
+participant "SqlUnitOfWork" as UOW
+participant "SqlRepository" as Repo
+participant "Planning / politique\nde programmation" as Domain
+database SQLite as DB
+participant "EmailNotifier" as Mail
+
+Client -> HTTP : PATCH /concerts/{id}/reschedule
+HTTP -> UC : RescheduleConcert(id, début, fin)
+UC -> UC : TimeSlot valide et normalisé en UTC
+UC -> UOW : __enter__()
+UOW -> DB : BEGIN IMMEDIATE
+UC -> Repo : get(concert), get(festival), get(artiste), get(scène)\nlist(concerts tous festivals)
+Repo -> DB : SELECT
+DB --> Repo : lignes SQL
+Repo --> UC : objets du domaine
+UC -> Domain : program(concert avec nouveau créneau, ...)
+Domain -> Domain : état préparation ; concert actif\nréférences ; période ; équipements\nconflits scène et artiste ; exclusion de soi
+alt règle invalide ou référence absente
+  Domain --> UC : DomainError / StateConflict\n(NotFound si chargement impossible)
+  UC -> UOW : __exit__(erreur)
+  UOW -> DB : ROLLBACK
+  UC --> HTTP : exception métier
+  HTTP --> Client : 400 / 409 / 404 ; aucun changement
+else règles valides
+  Domain --> UC : candidat validé
+  UC -> Repo : save(candidat)
+  Repo -> DB : UPDATE + flush
+  UC -> UOW : commit()
+  alt échec de persistance
+    DB --> UOW : erreur technique
+    UC -> UOW : __exit__(erreur)
+    UOW -> DB : ROLLBACK
+    UC --> HTTP : erreur technique ; aucune notification
+    HTTP --> Client : 500 ; modification non validée
+  else commit réussi
+    UOW -> DB : COMMIT
+    UC -> UOW : __exit__() : nettoyage
+    note over UC,DB : La modification est persistée ; la transaction est terminée.
+    UC -> UC : ConcertRescheduled(id, créneau)
+    UC -> Mail : notify(événement)
+    alt envoi simulé réussi
+      Mail --> UC : succès
+      UC --> HTTP : OperationResult(concert, sent)
+    else envoi simulé en échec
+      Mail --> UC : exception
+      UC -> UC : journaliser la panne
+      UC --> HTTP : OperationResult(concert, failed)
+    end
+    HTTP --> Client : 200 + concert\nX-Notification-Status: sent ou failed
+  end
+end
+@enduml

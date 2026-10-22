@@ -1,0 +1,6 @@
+Démarrage réel avec uvicorn : OK
+GET / : 200, status=ok
+GET /docs : 200
+GET /openapi.json : 200, route de dépublication présente
+GET /concerts/schedule/1 : 200, 14 concerts dans l'ordre chronologique
+Le serveur de vérification a été arrêté après les contrôles.
