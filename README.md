@@ -6,7 +6,14 @@ API Python de gestion d'un festival fictif, refactorisée selon une architecture
 
 ## Installation sous Windows PowerShell
 
-Prérequis : Python 3.11 ou plus récent. Depuis ce dossier :
+Prérequis : Python 3.11 ou plus récent. Pour récupérer le projet :
+
+```powershell
+git clone https://github.com/xer333/festiplan.git
+cd festiplan
+```
+
+Depuis ce dossier :
 
 ```powershell
 python -m venv .venv
@@ -92,6 +99,8 @@ Les trois non-régressions du sujet :
 ```
 
 Les tests d'intégration utilisent un moteur et une application de test explicitement injectés. Ils créent et suppriment leur propre base temporaire, même si l'application de travail a été importée avant pytest. Ils couvrent également le rollback SQL, les réservations simultanées et la commande d'initialisation. Les six tests initiaux sont conservés. Une dépréciation interne à Starlette/AnyIO peut être affichée avec les dépendances installées ; elle ne correspond pas à un échec de test.
+
+Un [parcours de prise en main avec PowerShell](docs/exemples_api.md) présente la consultation, le déplacement, la publication et la déclaration d’incidents.
 
 ## Organisation
 
